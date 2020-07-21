@@ -1,5 +1,5 @@
 import argparse
-from worktime import core
+from . import core
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", default="summary")  # fn

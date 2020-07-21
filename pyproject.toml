@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "worktime"
+name = "worktimething"
 version = "0.1.0"
 description = ""
 authors = ["arjoonn sharma <arjoonn.94@gmail.com>"]
