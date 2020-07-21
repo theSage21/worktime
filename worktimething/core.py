@@ -46,15 +46,17 @@ def run(args):
 
     def begin():
         with jsondb(args.json_path) as db:
-            last_time, last_slug, last_act = db["timeline"][-1]
-            if last_slug != args.s and last_act == "begin":
-                db["timeline"].append((time.time(), last_slug, "end"))
+            if db["timeline"]:
+                last_time, last_slug, last_act = db["timeline"][-1]
+                if last_slug != args.s and last_act == "begin":
+                    db["timeline"].append((time.time(), last_slug, "end"))
             db["timeline"].append((time.time(), args.s, "begin"))
 
     def end():
         with jsondb(args.json_path) as db:
-            last_time, last_slug, last_act = db["timeline"][-1]
-            assert last_slug == args.s and last_act == "begin"
+            if db["timeline"]:
+                last_time, last_slug, last_act = db["timeline"][-1]
+                assert last_slug == args.s and last_act == "begin"
             db["timeline"].append((time.time(), args.s, "end"))
 
     def summary():
