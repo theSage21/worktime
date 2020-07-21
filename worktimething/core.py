@@ -10,7 +10,7 @@ def jsondb(path):
     """
     Edit a given dictionary and it will be persisted on exit.
     """
-    d = {"timeline": [], "summary": {}}
+    d = {"timeline": []}
     if os.path.exists(path):
         with open(path, "r") as fl:
             d = json.loads(fl.read())
@@ -55,6 +55,9 @@ def run(cmd, slug, json_path):
                 last_time, last_slug, last_act = db["timeline"][-1]
                 if last_slug != slug and last_act == "begin":
                     db["timeline"].append((time.time(), last_slug, "end"))
+                if last_slug == slug and last_act == "begin":
+                    print("This task is currently running")
+                    return
             db["timeline"].append((time.time(), slug, "begin"))
 
     def end():
