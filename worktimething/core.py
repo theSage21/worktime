@@ -1,5 +1,6 @@
 import os
 import time
+import click
 import json
 from contextlib import contextmanager
 
@@ -40,27 +41,31 @@ def to_jira(total):
     return val.strip()
 
 
-def run(args):
-    if args.f != "summary":
-        assert args.s is not None
+@click.command(name="python -m worktimething")
+@click.argument("cmd", default="summary")
+@click.argument("slug", default="")
+@click.option("--json-path", default="db.json", help="Where to store data?")
+def run(cmd, slug, json_path):
+    if cmd != "summary":
+        assert slug is not None
 
     def begin():
-        with jsondb(args.json_path) as db:
+        with jsondb(json_path) as db:
             if db["timeline"]:
                 last_time, last_slug, last_act = db["timeline"][-1]
-                if last_slug != args.s and last_act == "begin":
+                if last_slug != slug and last_act == "begin":
                     db["timeline"].append((time.time(), last_slug, "end"))
-            db["timeline"].append((time.time(), args.s, "begin"))
+            db["timeline"].append((time.time(), slug, "begin"))
 
     def end():
-        with jsondb(args.json_path) as db:
+        with jsondb(json_path) as db:
             if db["timeline"]:
                 last_time, last_slug, last_act = db["timeline"][-1]
-                assert last_slug == args.s and last_act == "begin"
-            db["timeline"].append((time.time(), args.s, "end"))
+                assert last_slug == slug and last_act == "begin"
+            db["timeline"].append((time.time(), slug, "end"))
 
     def summary():
-        with jsondb(args.json_path) as db:
+        with jsondb(json_path) as db:
             last_slug = None
             started_at = None
             totals = {
@@ -87,6 +92,6 @@ def run(args):
 
     b = start = begin
     e = stop = end
-    exec(f"{args.f}()")
-    if args.f != "summary":
+    exec(f"{cmd}()")
+    if cmd != "summary":
         print(summary())
