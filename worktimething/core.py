@@ -6,6 +6,9 @@ from contextlib import contextmanager
 
 @contextmanager
 def jsondb(path):
+    """
+    Edit a given dictionary and it will be persisted on exit.
+    """
     d = {"timeline": [], "summary": {}}
     if os.path.exists(path):
         with open(path, "r") as fl:
@@ -16,6 +19,7 @@ def jsondb(path):
 
 
 def to_jira(total):
+    "Turn total seconds to a jira work entry timestamp"
     m = 60
     h = 60 * m
     d = 24 * h
@@ -79,8 +83,8 @@ def run(args):
 
                 print(f"{slug:>20} : {prefix} {to_jira(total)}")
 
-    b = begin
-    e = end
+    b = start = begin
+    e = stop = end
     exec(f"{args.f}()")
     if args.f != "summary":
         print(summary())
