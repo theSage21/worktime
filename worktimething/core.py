@@ -72,13 +72,14 @@ def run(cmd, slug, json_path):
                 slug: {"total": 0, "started_at": None, "running": False}
                 for _, slug, _ in db["timeline"]
             }
+            total_time = 0
             for slug, data in totals.items():
                 for stamp, _, act in (x for x in db["timeline"] if x[1] == slug):
                     if act == "begin":
                         data["started_at"] = stamp
                         data["running"] = True
                     elif act == "end":
-                        data["total"] += time.time() - data["started_at"]
+                        data["total"] += stamp - data["started_at"]
                         data["started_at"] = None
                         data["running"] = False
                 prefix = "*" if data["running"] else " "
@@ -87,8 +88,11 @@ def run(cmd, slug, json_path):
                     if data["running"]
                     else data["total"]
                 )
+                total_time += total
 
-                print(f"{slug:>20} : {prefix} {to_jira(total)}")
+                print(f"{slug:>5} : {prefix} {to_jira(total)}")
+            print("-" * 20)
+            print(f"{'TOTAL':>5} :   {to_jira(total_time)}")
 
     b = start = begin
     e = stop = end
