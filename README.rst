@@ -1,5 +1,5 @@
 WorkTimeThing
-========
+=============
 
 Simple task time tracker::
 
