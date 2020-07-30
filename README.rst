@@ -14,6 +14,8 @@ Simple task time tracker::
     143 : * 1h 20m
     --------------------
     TOTAL :   9h 5m
+    wtt a 141 5h3m  # Add time manually
+    wtt s 141 2h30m  # Subtract time manually
 
 
 Then get summaries in Jira work log format so that you don't have to worry about those any longer.
