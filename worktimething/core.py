@@ -4,6 +4,7 @@ import click
 import json
 from contextlib import contextmanager
 
+# n seconds
 M = 60
 H = 60 * M
 D = 24 * H
@@ -45,14 +46,16 @@ def to_jira(total):
 
 def read_jira(s):
     seconds = 0
-    p = ""
+    magnitude = ""
     for i in s:
         if i.isdigit():
-            p += i
+            magnitude += i
+        elif i.isspace():
+            continue
         else:
             unit = {"w": W, "d": D, "h": H, "m": M}[i]
-            seconds += int(p) * unit
-            p = ""
+            seconds += int(magnitude) * unit
+            magnitude = ""
     return seconds
 
 
@@ -62,21 +65,25 @@ def read_jira(s):
 @click.argument("diff", default="")
 @click.option("--json-path", default="db.json", help="Where to store data?")
 def run(cmd, slug, diff, json_path):
-    if cmd != "summary":
-        assert slug is not None
-
     def add():
+        "Manually add a time entry"
         assert cmd and slug and diff
         seconds = read_jira(diff)
         with jsondb(json_path) as db:
             db["timeline"].append((seconds, slug, "adjust"))
 
     def sub():
+        "Manually subtract a time entry"
         add()
         with jsondb(json_path) as db:
             db["timeline"][-1][0] *= -1
 
     def begin():
+        """
+        Begin recording time on some slug. Automatically stops time if it was
+        being recorded for a previous task
+        """
+        assert cmd and slug
         with jsondb(json_path) as db:
             if db["timeline"]:
                 last_time, last_slug, last_act = db["timeline"][-1]
@@ -88,6 +95,10 @@ def run(cmd, slug, diff, json_path):
             db["timeline"].append((time.time(), slug, "begin"))
 
     def end():
+        """
+        Stop recording time for some slug.
+        """
+        assert cmd and slug
         with jsondb(json_path) as db:
             if db["timeline"]:
                 last_time, last_slug, last_act = db["timeline"][-1]
@@ -95,6 +106,9 @@ def run(cmd, slug, diff, json_path):
             db["timeline"].append((time.time(), slug, "end"))
 
     def summary():
+        """
+        Show a summary of time spent so far.
+        """
         with jsondb(json_path) as db:
             last_slug = None
             started_at = None
@@ -127,10 +141,22 @@ def run(cmd, slug, diff, json_path):
             print("-" * 20)
             print(f"{'TOTAL':>5} :   {to_jira(total_time)}")
 
+    # cmd aliases
     b = start = begin
     e = stop = end
     a = add
     s = sub
-    exec(f"{cmd}()")
+    if cmd not in locals():
+        print("Commands can only be one of:")
+        print(
+            """
+        b = start = begin
+        e = stop = end
+        a = add
+        s = sub
+        """
+        )
+    else:
+        exec(f"{cmd}()")
     if cmd != "summary":
         print(summary())
